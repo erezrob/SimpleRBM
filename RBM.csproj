@@ -49,12 +49,11 @@
   <ItemGroup>
     <Compile Include="ActivationFunctions.cs" />
     <Compile Include="DataParser.cs" />
-    <Compile Include="DualLayerRBM.cs" />
     <Compile Include="ExtensionClasses.cs" />
     <Compile Include="Distributions.cs" />
-    <Compile Include="IRBM.cs" />
+    <Compile Include="Interfaces.cs" />
     <Compile Include="Matrix.cs" />
-    <Compile Include="MultilayeredRBM.cs" />
+    <Compile Include="DeepBeliefNetwork.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RBM.cs" />

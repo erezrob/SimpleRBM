@@ -16,9 +16,11 @@ namespace DeepLearn
             var trainingData =  DataParser.Parse("optdigits-tra.txt").Take(100).ToArray();
 
             //Although it is tempting to say that the final hidden layer has 10 features (10 numbers) but let's keep it real.
-            var rbm = new MultilayeredRBM(new[] {1024, 128, 16}, 0.4);
+            var rbm = new DeepBeliefNetwork(new[] {1024, 50,16}, 0.4);
         
-            rbm.TrainAll(trainingData, 450, 3);
+            var error = 0d;
+            rbm.TrainAll(trainingData, 150, 3);
+     
             
             Console.WriteLine("\n\n");
             
@@ -30,6 +32,14 @@ namespace DeepLearn
                                                         Console.WriteLine("");
                                                         x.PrintMap(32);
                                                     });
+
+            Console.WriteLine("\n\n");
+
+            //rbm.DayDream(10).ToList().ForEach(x =>
+            //                                      {
+            //                                          Console.WriteLine("");
+            //                                          x.PrintMap(32);
+            //                                      });
             
             Console.ReadKey();
         }

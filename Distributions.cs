@@ -50,5 +50,32 @@ namespace DeepLearn
             }
             return matrix;
         }
+
+        public static RealMatrix UniformRandromMatrixBool(int rows, int cols)
+        {
+            RealMatrix matrix = new RealMatrix(rows, cols);
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    matrix[i, j] = Convert.ToInt32(rand.NextDouble());
+                }
+            }
+            return matrix;
+        }
+
+        public static RVector UniformRandromMatrix(int numElements)
+        {
+            RVector vector = new RVector(numElements);
+
+
+            for (int j = 0; j < numElements; j++)
+            {
+                vector[j] = rand.NextDouble();
+            }
+
+            return vector;
+        }
     }
 }

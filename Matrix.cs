@@ -8,19 +8,25 @@ namespace DeepLearn
     public class Matrix<T> : IEnumerable<T> 
     {
         #region Fields
-        protected readonly T[,] m_array; 
+        protected readonly T[][] m_array; 
         #endregion
 
         #region Public Properties
-        public int Height { get { return m_array.GetLength(0); } }
+        public int Height { get { return m_array.Length; } }
 
-        public int Length { get { return m_array.GetLength(1); } } 
+        public int Length { get { return m_array[0].Length; } } 
         #endregion
 
         #region Ctors
         public Matrix(int rows, int cols)
         {
-            m_array = new T[rows, cols];
+            m_array = new T[rows][];
+
+            //init
+            for (int i = 0; i < rows; i++)
+            {
+                m_array[i] = new T[cols];
+            }
         }
 
         public Matrix(T[,] data)
@@ -36,7 +42,7 @@ namespace DeepLearn
         }
 
         public Matrix(Matrix<T> matrix)
-            : this(matrix.ToArray())
+            : this(matrix.m_array)
         {
         }
 
@@ -65,19 +71,19 @@ namespace DeepLearn
         #region Indexers
         public T this[int i, int j]
         {
-            get { return m_array[i, j]; }
-            set { m_array[i, j] = value; }
+            get { return m_array[i][j]; }
+            set { m_array[i][j] = value; }
         } 
         #endregion
 
         #region Enumerators
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < m_array.GetLength(0); i++)
+            for (int i = 0; i < Height; i++)
             {
-                for (int j = 0; j < m_array.GetLength(1); j++)
+                for (int j = 0; j < Length; j++)
                 {
-                    yield return m_array[i, j];
+                    yield return m_array[i][j];
                 }
             }
         }
@@ -108,50 +114,19 @@ namespace DeepLearn
             }
 
         }
-
-        public T[,] ToArray()
+        
+        public T[][] ToArray()
         {
             return m_array;
         }
 
-        public T[][] ToJaggedArray()
-        {
-            var arr = new T[Height][];
-            for (int i = 0; i < Height; i++)
-            {
-                arr[i] = new T[Length];
-                for (int j = 0; j < Length; j++)
-                {
-                    arr[i][j] = this[i, j];
-                }
-            }
-
-            return arr;
-        }
-
-        public virtual Matrix<T> Submatrix(int mStart, int nStart, int mSize = 0, int nSize = 0)
-        {
-            mSize = mSize == 0 ? Height - mStart : mSize;
-            nSize = nSize == 0 ? Length - nStart : nSize;
-
-            var x = new Matrix<T>(mSize, nSize);
-
-            for (int i = 0; i < mSize; i++)
-            {
-                for (int j = 0; j < nSize; j++)
-                {
-                    x[i, j] = this[i + mStart, j + nStart];
-                }
-            }
-
-            return x;
-        }
+        
  
         #endregion
 
         public static implicit operator T[][](Matrix<T> d)
         {
-            return d.ToJaggedArray();
+            return d.ToArray();
         }
     }
 
@@ -436,9 +411,22 @@ namespace DeepLearn
         #endregion
 
         #region Polymorphism generics compatibility
-        public new RealMatrix Submatrix(int mStart, int nStart, int mSize = 0, int nSize = 0)
+        public  RealMatrix Submatrix(int mStart, int nStart, int mSize = 0, int nSize = 0)
         {
-            return (RealMatrix)base.Submatrix(mStart, nStart, mSize, nSize);
+            mSize = mSize == 0 ? Height - mStart : mSize;
+            nSize = nSize == 0 ? Length - nStart : nSize;
+
+            var x = new RealMatrix(mSize, nSize);
+
+            for (int i = 0; i < mSize; i++)
+            {
+                for (int j = 0; j < nSize; j++)
+                {
+                    x[i, j] = this[i + mStart, j + nStart];
+                }
+            }
+
+            return x;
         }
 
         public new RealMatrix Transpose
@@ -461,6 +449,22 @@ namespace DeepLearn
         }
         
         #endregion
+
+        internal RVector ToVector()
+        {
+            if(Length == 1)
+            {
+                return new RVector(Submatrix(0, 0, 0, 1));
+            }
+            else if(Height == 1)
+            {
+                return new RVector(Submatrix(0, 0, 1));
+            }
+            else
+            {
+                throw new InvalidOperationException("Matrix is not a one liner");
+            }
+        }
     }
 
    
@@ -587,6 +591,25 @@ namespace DeepLearn
                     matrix[i + mPos, j + nPos] = src[i, j];
                 }
             }
+        }
+
+        public static void Update(this RealMatrix matrix, RVector src, int length=0, bool isVertical=true,  int mPos =0, int nPos=0)
+        {
+            length = length == 0 ? src.Length : length;
+
+          
+               for (int i = 0; i < length; i++)
+               {
+                   if (isVertical)
+                   {
+                       matrix[mPos + i, nPos] = src[i];
+                   }
+                   else
+                   {
+                       matrix[mPos, nPos + i] = src[i];
+                   }
+               }
+           
         }
     }
    

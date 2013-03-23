@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace DeepLearn
 {
-    public class MultilayeredRBM : IMultilayeredRBM
+    public class DeepBeliefNetwork : IDBN
     {
+        #region Events
         public event EpochEventHandler EpochEnd;
         public void RaiseEpochEnd(int seq, double err)
         {
@@ -21,83 +22,87 @@ namespace DeepLearn
         {
             if (EpochEnd != null)
                 EpochEnd(this, new EpochEventArgs(0, error));
-        }
+        } 
+        #endregion
 
-        private RBM[] m_rbms;
-       
-        public MultilayeredRBM(int[] layerSizes, double learningRate)
+        private readonly RBM[] m_rbms;
+
+        public DeepBeliefNetwork(int[] layerSizes, double learningRate)
         {
             m_rbms = new RBM[layerSizes.Length - 1];
 
             for (int i = 0; i < layerSizes.Length - 1; i++)
             {
                 var rbm = new RBM(layerSizes[i], layerSizes[i + 1], learningRate);
-                rbm.EpochEnd += new EpochEventHandler(rbm_EpochEnd);
+                rbm.EpochEnd += OnRbm_EpochEnd;
                 m_rbms[i] = rbm;
             }
         }
 
-        void rbm_EpochEnd(object sender, EpochEventArgs e)
+        void OnRbm_EpochEnd(object sender, EpochEventArgs e)
         {
             RaiseEpochEnd(e.SequenceNumber, e.Error);
         }
 
-        public double[][] RunVisible(double[][] data)
+        public double[][] Encode(double[][] data)
         {
-            data = m_rbms[0].RunVisible(data);
+            data = m_rbms[0].GetHiddenLayer(data);
 
             for (int i = 0; i < m_rbms.Length - 1; i++)
             {
-                data = m_rbms[i + 1].RunVisible(data);
+                data = m_rbms[i + 1].GetHiddenLayer(data);
             }
 
             return data;
         }
 
-        public double[][] RunHidden(double[][] data)
+        public double[][] Decode(double[][] data)
         {
-            data = m_rbms[m_rbms.Length-1].RunHidden(data);
+            data = m_rbms[m_rbms.Length-1].GetVisibleLayer(data);
 
             for (int i = m_rbms.Length - 1; i > 0; i--)
             {
-                data = m_rbms[i - 1].RunHidden(data);
+                data = m_rbms[i - 1].GetVisibleLayer(data);
             }
 
             return data;
         }
 
+   
+
         public double[][] Reconstruct(double[][] data)
         {
-            var hl = RunVisible(data);
-
-         //   fitRatio = (double)hl.ToJaggedArray()[0].Count(x => x >= 0.97 || x<=0.03)/hl.ToJaggedArray()[0].Length;
-
-            return RunHidden(hl);
+            var hl = Encode(data);
+            return Decode(hl);
         }
 
+        public double[][] DayDream(int numOfDreams)
+        {
+          //  var dreams = new double[numOfDreams][];
+
+           // for (int i = 0; i < numOfDreams; i++)
+           // {
+                var dreamRawData = Distributions.UniformRandromMatrixBool(numOfDreams, m_rbms[0].NumberOfVisibleElements);
+            //}
+
+            var ret = Reconstruct(dreamRawData);
+
+            return ret;
+        }
 
         public double[][] Train( double[][] data, int epochs,int layerNumber ,out double error)
         {
             m_rbms[layerNumber].Train(data, epochs, out error);
             RaiseTrainEnd(error);
-            return m_rbms[layerNumber].RunVisible(data);
+            return m_rbms[layerNumber].GetHiddenLayer(data);
         }
 
-        public void Train(double[][] data, int epochs, out double error)
-        {
-            throw new NotSupportedException("User TrainAll or Train specific layer.");
-        }
-
+        
         public void AsyncTrain( double[][] data, int epochs,int layerNumber)
         {
             double error;
             var f = new TaskFactory();
             f.StartNew(new Action(() => Train( data, epochs, layerNumber, out error)));
-        }
-
-        public void AsyncTrain(double[][] data, int epochs)
-        {
-            AsyncTrain(data, epochs, 0);
         }
 
         public void TrainAll(double[][] visibleData, int epochs, int epochMultiplier)
@@ -106,8 +111,9 @@ namespace DeepLearn
 
             for (int i = 0; i < m_rbms.Length; i++)
             {
-              visibleData = Train( visibleData, epochs + (epochs * i * epochMultiplier),i, out error);
-              RaiseTrainEnd(error);
+                visibleData = Train(visibleData, epochs, i, out error);
+                epochs = epochs * epochMultiplier;
+                RaiseTrainEnd(error);
             }
         }
 

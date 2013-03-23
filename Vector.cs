@@ -118,9 +118,39 @@ namespace DeepLearn
             return x;
         }
 
+        public static RVector operator >(RVector c1, RVector c2)
+        {
+            var result = new RVector(c1.Length);
+
+            Parallel.For(0, c1.Length, i =>
+            {
+               
+                    result[i] = Convert.ToDouble(c1[i] > c2[i]);
+               
+            });
+            return result;
+        }
+
+        public static RVector operator <(RVector c1, RVector c2)
+        {
+            return c2 > c1;
+        }
+
         public static RVector Zeros(int size)
         {
             return new RVector(size);
+        }
+
+        public static RVector Ones(int size)
+        {
+            var v = new RVector(size);
+
+            for (int i = 0; i < size; i++)
+            {
+                v[i] = 1;
+            }
+
+            return v;
         }
 
         public static RVector Random(int size)

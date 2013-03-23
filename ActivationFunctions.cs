@@ -35,5 +35,18 @@ namespace DeepLearn
             }
             return result;
         }
+
+        public static RVector Logistic(RVector vector)
+        {
+            var result = new RVector(vector.Length);
+
+            for (int i = 0; i < vector.Length; i++)
+            {
+
+                result[i] = Logistic(vector[i]);
+               
+            }
+            return result;
+        }
     }
 }

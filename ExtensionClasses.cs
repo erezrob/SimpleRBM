@@ -45,9 +45,9 @@ namespace DeepLearn
             mat.ToArray().Flatten().PrintMap(rows);
         }
 
-        public static double[] Flatten(this double[,] arr)
+        public static double[] Flatten(this double[][] arr)
         {
-            return arr.Cast<double>().ToArray();
+            return arr.SelectMany(x => x).ToArray();
         }
     }
 }

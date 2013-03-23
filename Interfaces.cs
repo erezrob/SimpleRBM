@@ -7,8 +7,8 @@ namespace DeepLearn
 {
     public interface IRBM
     {
-        double[][] RunVisible(double[][] data);
-        double[][] RunHidden(double[][] data);
+        double[][] GetHiddenLayer(double[][] data);
+        double[][] GetVisibleLayer(double[][] data);
         double[][] Reconstruct(double[][] data);
 
         void Train(double[][] data, int epochs, out double error);
@@ -18,8 +18,12 @@ namespace DeepLearn
         event EpochEventHandler TrainEnd;
     }
 
-    public interface IMultilayeredRBM : IRBM
+    public interface IDBN 
     {
+        double[][] Encode(double[][] data);
+        double[][] Decode(double[][] data);
+        double[][] Reconstruct(double[][] data);
+
         double[][] Train(double[][] data, int epochs,int layerPosition, out double error);
         void AsyncTrain(double[][] data, int epochs, int layerPosition);
 
