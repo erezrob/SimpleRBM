@@ -13,13 +13,15 @@ namespace DeepLearn
     {
         static void Main(string[] args)
         {
+            //Our dataset cosists of images of handwritten digits (0-9)
+            //Let's only take 100 of those for training
             var trainingData =  DataParser.Parse("optdigits-tra.txt").Take(100).ToArray();
 
             //Although it is tempting to say that the final hidden layer has 10 features (10 numbers) but let's keep it real.
             var rbm = new DeepBeliefNetwork(new[] {1024, 50,16}, 0.4);
         
             var error = 0d;
-            rbm.TrainAll(trainingData, 150, 3);
+            rbm.TrainAll(trainingData, 50, 3);
      
             
             Console.WriteLine("\n\n");
@@ -33,13 +35,15 @@ namespace DeepLearn
                                                         x.PrintMap(32);
                                                     });
 
+            Console.ReadKey();
             Console.WriteLine("\n\n");
 
-            //rbm.DayDream(10).ToList().ForEach(x =>
-            //                                      {
-            //                                          Console.WriteLine("");
-            //                                          x.PrintMap(32);
-            //                                      });
+            //Day dream 10 images
+            rbm.DayDream(10).ToList().ForEach(x =>
+                                                  {
+                                                      Console.WriteLine("");
+                                                      x.PrintMap(32);
+                                                  });
             
             Console.ReadKey();
         }

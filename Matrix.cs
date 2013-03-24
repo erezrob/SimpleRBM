@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 
 namespace DeepLearn
 {
+    /// <summary>
+    /// Generic Matrix
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class Matrix<T> : IEnumerable<T> 
     {
         #region Fields
@@ -130,7 +134,9 @@ namespace DeepLearn
         }
     }
 
-
+    /// <summary>
+    /// Matrix of real numbers
+    /// </summary>
     public class RealMatrix : Matrix<double>
     {
         #region Ctors
@@ -193,6 +199,8 @@ namespace DeepLearn
 
         public static RealMatrix operator *(RealMatrix c1, RealMatrix c2)
         {
+            return MatrixProduct(c1, c2);
+
             if (c1.Length != c2.Height)
             {
                 throw new ArithmeticException("Width of the first matrix must equal the height of the second matrix");
@@ -201,23 +209,27 @@ namespace DeepLearn
 
             int height = c1.Height;
             int width = c2.Length;
-            int n = c1.Length;
+            int n = c1.Height;
 
             var result = new RealMatrix(height, width);
 
-            Parallel.For(0, height, i =>
-                                        {
-                                            for (int j = 0; j < width; j++)
-                                            {
-                                                result[i, j] = 0.0;
+            //Parallel.For(0, height, i =>
+            //                            {
+            //                                for (int j = 0; j < width; j++)
+            //                                {
+            //                                    result[i, j] = 0.0;
 
-                                                for (int k = 0; k < n; k++)
-                                                {
-                                                    result[i, j] += c1[i, k]*c2[k, j];
-                                                }
-                                            }
-                                        });
+            //                                    for (int k = 0; k < n; k++)
+            //                                    {
+            //                                        result[i, j] += c1[i, k]*c2[k, j];
+            //                                    }
+            //                                }
+            //                            });
 
+            //return result;
+          
+
+            
             return result;
 
         }
@@ -249,6 +261,32 @@ namespace DeepLearn
         public static RealMatrix operator <(RealMatrix c1, RealMatrix c2)
         {
             return c2 > c1;
+        }
+
+        static RealMatrix MatrixProduct(RealMatrix matrixA,
+  RealMatrix matrixB)
+        {
+            int aRows = matrixA.Height;
+            int aCols = matrixA.Length;
+            int bRows = matrixB.Height;
+            int bCols = matrixB.Length;
+            if (aCols != bRows)
+                throw new Exception("xxxx");
+
+            var result = new RealMatrix(aRows, bCols);
+
+            Parallel.For(0, aRows, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, i =>
+                {
+                    for (int j = 0; j < bCols; ++j) // each col of B
+                        for (int k = 0; k < aCols; ++k) // could use k < bRows
+                        {
+                            result[i, j] += matrixA[i, k] * matrixB[k, j];
+                        }
+                }
+
+                );
+
+            return result;
         }
 
         #endregion
@@ -402,7 +440,7 @@ namespace DeepLearn
             for (int i = 0; i < m; i++)
                 for (int j = 0; j < i; j++)
                 {
-                    A[i, j] = r.NextDouble();
+                    A[i, j] = Distributions.GetRandomDouble();
                     A[j, i] = A[i, j];
                 }
 
@@ -450,7 +488,7 @@ namespace DeepLearn
         
         #endregion
 
-        internal RVector ToVector()
+        public RVector ToVector()
         {
             if(Length == 1)
             {
@@ -467,22 +505,30 @@ namespace DeepLearn
         }
     }
 
-   
 
+    /// <summary>
+    /// Real matrix extension methods
+    /// </summary>
     public static class MatrixExtensions
     {
+        /// <summary>
+        /// Insert a new row at a first row in a matrix
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static RealMatrix InsertRow(this RealMatrix matrix, int value)
         {
             var mat = new RealMatrix(matrix.Height + 1, matrix.Length);
 
-            
-                Parallel.For(0, matrix.Height, i =>
-                                               Parallel.For(0, matrix.Length, j =>
-                                                                                  {
-                                                                                      mat[i + 1, j] = matrix[i, j];
-                                                                                  }));
 
-            
+            Parallel.For(0, matrix.Height, i =>
+                                           Parallel.For(0, matrix.Length, j =>
+                                                                              {
+                                                                                  mat[i + 1, j] = matrix[i, j];
+                                                                              }));
+
+
             Parallel.For(0, mat.Length, i =>
                                             {
                                                 mat[0, i] = value;
@@ -491,6 +537,12 @@ namespace DeepLearn
             return mat;
         }
 
+        /// <summary>
+        /// Insert a new column as a first column in a matrix
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static RealMatrix InsertCol(this RealMatrix matrix, int value)
         {
             var mat = new RealMatrix(matrix.Height, matrix.Length + 1);
@@ -510,19 +562,32 @@ namespace DeepLearn
             return mat;
         }
 
+        /// <summary>
+        /// Remove first Column
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
         public static RealMatrix RemoveFirstCol(this RealMatrix matrix)
         {
             var mat = new RealMatrix(matrix.Height, matrix.Length - 1);
 
             Parallel.For(0, mat.Height, i =>
-                                           Parallel.For(0, mat.Length, j =>
-                                                                              {
-                                                                                  mat[i, j] = matrix[i, j + 1];
-                                                                              }));
+                                        Parallel.For(0, mat.Length, j =>
+                                                                        {
+                                                                            mat[i, j] = matrix[i, j + 1];
+                                                                        }));
 
             return mat;
         }
 
+        /// <summary>
+        /// Update a certain axis in a matrix with a specific value
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="index">Offset point</param>
+        /// <param name="value"></param>
+        /// <param name="axis">0 -> left to right, 1 -> Up and down</param>
+        /// <returns></returns>
         public static RealMatrix Update(this RealMatrix matrix, int index, int value, int axis)
         {
             var mat = new RealMatrix(matrix);
@@ -546,6 +611,60 @@ namespace DeepLearn
         }
 
         /// <summary>
+        /// Update a selection range in a matrix with another matrix
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="mPos"></param>
+        /// <param name="nPos"></param>
+        /// <param name="src"></param>
+        /// <param name="mSize"></param>
+        /// <param name="nSize"></param>
+        public static void Update(this RealMatrix matrix, int mPos, int nPos, RealMatrix src, int mSize = 0,
+                                  int nSize = 0)
+        {
+            mSize = mSize == 0 ? matrix.Height - mPos : mSize;
+            nSize = nSize == 0 ? matrix.Length - nPos : nSize;
+
+            for (int i = 0; i < mSize; i++)
+            {
+                for (int j = 0; j < nSize; j++)
+                {
+                    matrix[i + mPos, j + nPos] = src[i, j];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update a selection with a source vector
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="src"></param>
+        /// <param name="length"></param>
+        /// <param name="isVertical"></param>
+        /// <param name="mPos"></param>
+        /// <param name="nPos"></param>
+        public static void Update(this RealMatrix matrix, RVector src, int length = 0, bool isVertical = true,
+                                  int mPos = 0, int nPos = 0)
+        {
+            length = length == 0 ? src.Length : length;
+
+
+            for (int i = 0; i < length; i++)
+            {
+                if (isVertical)
+                {
+                    matrix[mPos + i, nPos] = src[i];
+                }
+                else
+                {
+                    matrix[mPos, nPos + i] = src[i];
+                }
+            }
+
+        }
+
+
+        /// <summary>
         /// Q-R Decomposition
         /// </summary>
         /// <param name="A">Source matrix</param>
@@ -564,53 +683,21 @@ namespace DeepLearn
                 var x = new RVector(R.Submatrix(k, k, 0, 1));
                 var e = RVector.Zeros(x.Length);
                 e[0] = 1;
-                var u = -Math.Sign(x[0]) * x.Norm2 * e + x;
-                u = u / u.Norm2;
-                var qn = RealMatrix.I(u.Length) - 2 * u.Outer(u);
+                var u = -Math.Sign(x[0])*x.Norm2*e + x;
+                u = u/u.Norm2;
+                var qn = RealMatrix.I(u.Length) - 2*u.Outer(u);
 
                 //var r = R.Submatrix(k, k) - 2 * u.Outer(u) * R.Submatrix(k, k);
                 var q = RealMatrix.I(Q.Height);
                 q.Update(k, k, qn);
-                Q = Q * q;
-                R = Q.Transpose * A;
+                Q = Q*q;
+                R = Q.Transpose*A;
 
             }
 
-            return new[] { Q, R };
+            return new[] {Q, R};
         }
 
-        public static void Update(this RealMatrix matrix, int mPos, int nPos, RealMatrix src, int mSize = 0, int nSize = 0)
-        {
-            mSize = mSize == 0 ? matrix.Height - mPos : mSize;
-            nSize = nSize == 0 ? matrix.Length - nPos : nSize;
-
-            for (int i = 0; i < mSize; i++)
-            {
-                for (int j = 0; j < nSize; j++)
-                {
-                    matrix[i + mPos, j + nPos] = src[i, j];
-                }
-            }
-        }
-
-        public static void Update(this RealMatrix matrix, RVector src, int length=0, bool isVertical=true,  int mPos =0, int nPos=0)
-        {
-            length = length == 0 ? src.Length : length;
-
-          
-               for (int i = 0; i < length; i++)
-               {
-                   if (isVertical)
-                   {
-                       matrix[mPos + i, nPos] = src[i];
-                   }
-                   else
-                   {
-                       matrix[mPos, nPos + i] = src[i];
-                   }
-               }
-           
-        }
     }
-   
+
 }

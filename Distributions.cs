@@ -2,79 +2,107 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DeepLearn
 {
     class Distributions
     {
-        private static Random rand = new Random(); //reuse this if you are generating many
+        private static readonly Random Random = new Random(); //reuse this if you are generating many non time dependant numbers
+        
+        /// <summary>
+        /// Random is not a thread-safe class, this helper function locks our global Random instance.
+        /// </summary>
+        /// <returns></returns>
+        public static double GetRandomDouble()
+        {
+            var x = 0d;
+            lock (Random)
+                x = Random.NextDouble();
+            return x;
+        }
+        
         /// <summary>
         /// u(0,1) normal dist
         /// </summary>
         public static double GaussianNormal()
         {
-          
-            double u1 = rand.NextDouble(); //these are uniform(0,1) random doubles
-            double u2 = rand.NextDouble();
-            double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *
-                         Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
-            //double randNormal =
-            //             mean + stdDev * randStdNormal; //random normal(mean,stdDev^2)
+
+            double u1 = 0;
+            while(u1 == 0.0)
+                u1 = GetRandomDouble();
+            double u2 = GetRandomDouble(); 
+            double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
             return randStdNormal;
         }
 
+        /// <summary>
+        /// Random Gaussian Matrix
+        /// </summary>
+        /// <param name="rows"></param>
+        /// <param name="cols"></param>
+        /// <returns></returns>
         public static RealMatrix GaussianMatrix(int rows, int cols)
         {
-            RealMatrix matrix = new RealMatrix(rows, cols);
+            var matrix = new RealMatrix(rows, cols);
 
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < cols; j++)
-                {
-                    matrix[i, j] = GaussianNormal();
-                }   
-            }
+            Parallel.For(0, rows, i => Parallel.For(0, cols, j =>
+                                                                 {
+                                                                     matrix[i, j] = GaussianNormal();
+                                                                 }));
+
             return matrix;
         }
 
+
+        /// <summary>
+        /// Uniform Random Matrix
+        /// </summary>
+        /// <param name="rows"></param>
+        /// <param name="cols"></param>
+        /// <returns></returns>
         public static RealMatrix UniformRandromMatrix(int rows, int cols)
         {
-            RealMatrix matrix = new RealMatrix(rows, cols);
+            var matrix = new RealMatrix(rows, cols);
 
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < cols; j++)
-                {
-                    matrix[i, j] = rand.NextDouble();
-                }
-            }
+            Parallel.For(0, rows, i => Parallel.For(0, cols, j =>
+                                                                 {
+                                                                     matrix[i, j] = GetRandomDouble(); 
+                                                                 }));
             return matrix;
         }
 
+        /// <summary>
+        /// Uniform Random Boolean Matrix
+        /// </summary>
+        /// <param name="rows"></param>
+        /// <param name="cols"></param>
+        /// <returns></returns>
         public static RealMatrix UniformRandromMatrixBool(int rows, int cols)
         {
-            RealMatrix matrix = new RealMatrix(rows, cols);
+            var matrix = new RealMatrix(rows, cols);
 
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < cols; j++)
-                {
-                    matrix[i, j] = Convert.ToInt32(rand.NextDouble());
-                }
-            }
+            Parallel.For(0, rows, i => Parallel.For(0, cols, j =>
+                                                                 {
+                                                                     matrix[i, j] = Convert.ToInt32(GetRandomDouble());
+                                                                 }));
+
             return matrix;
         }
 
-        public static RVector UniformRandromMatrix(int numElements)
+        /// <summary>
+        /// Uniform Random Vector
+        /// </summary>
+        /// <param name="numElements"></param>
+        /// <returns></returns>
+        public static RVector UniformRandromVector(int numElements)
         {
-            RVector vector = new RVector(numElements);
-
-
-            for (int j = 0; j < numElements; j++)
-            {
-                vector[j] = rand.NextDouble();
-            }
-
+            var vector = new RVector(numElements);
+            
+            Parallel.For(0, numElements, i =>
+                                             {
+                                                 vector[i] = GetRandomDouble(); 
+                                             });
             return vector;
         }
     }

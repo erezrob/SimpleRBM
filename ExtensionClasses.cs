@@ -7,29 +7,6 @@ namespace DeepLearn
 {
     public  static class ExtensionClasses
     {
-        public static int N = 2;
-        public static void Topt(double[][] A, double[][] B, double[][] C)
-        {
-            var source = Enumerable.Range(0, N);
-            var pquery = from num in source.AsParallel()
-                         select num;
-            pquery.ForAll((e) => Popt(A, B, C, e));
-        }
-        public static void Popt(double[][] A, double[][] B, double[][] C, int i)
-        {
-            double[] iRowA = A[i];
-            double[] iRowC = C[i];
-            for (int k = 0; k < N; k++)
-            {
-                double[] kRowB = B[k];
-                double ikA = iRowA[k];
-                for (int j = 0; j < N; j++)
-                {
-                    iRowC[j] += ikA * kRowB[j];
-                }
-            }
-        }
-
         public static void PrintMap(this double[] arr,  int rows)
         {
             for (int i = 0; i < arr.Length; i++)

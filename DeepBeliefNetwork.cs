@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DeepLearn
@@ -25,8 +21,11 @@ namespace DeepLearn
         } 
         #endregion
 
-        private readonly RBM[] m_rbms;
+        #region Private Members
+        private readonly RBM[] m_rbms; 
+        #endregion
 
+        #region Ctors
         public DeepBeliefNetwork(int[] layerSizes, double learningRate)
         {
             m_rbms = new RBM[layerSizes.Length - 1];
@@ -37,13 +36,17 @@ namespace DeepLearn
                 rbm.EpochEnd += OnRbm_EpochEnd;
                 m_rbms[i] = rbm;
             }
-        }
+        } 
+        #endregion
 
-        void OnRbm_EpochEnd(object sender, EpochEventArgs e)
+        #region Private Methods
+        private void OnRbm_EpochEnd(object sender, EpochEventArgs e)
         {
             RaiseEpochEnd(e.SequenceNumber, e.Error);
-        }
+        } 
+        #endregion
 
+        #region Public Methods
         public double[][] Encode(double[][] data)
         {
             data = m_rbms[0].GetHiddenLayer(data);
@@ -58,7 +61,7 @@ namespace DeepLearn
 
         public double[][] Decode(double[][] data)
         {
-            data = m_rbms[m_rbms.Length-1].GetVisibleLayer(data);
+            data = m_rbms[m_rbms.Length - 1].GetVisibleLayer(data);
 
             for (int i = m_rbms.Length - 1; i > 0; i--)
             {
@@ -68,8 +71,6 @@ namespace DeepLearn
             return data;
         }
 
-   
-
         public double[][] Reconstruct(double[][] data)
         {
             var hl = Encode(data);
@@ -78,31 +79,25 @@ namespace DeepLearn
 
         public double[][] DayDream(int numOfDreams)
         {
-          //  var dreams = new double[numOfDreams][];
-
-           // for (int i = 0; i < numOfDreams; i++)
-           // {
-                var dreamRawData = Distributions.UniformRandromMatrixBool(numOfDreams, m_rbms[0].NumberOfVisibleElements);
-            //}
+            var dreamRawData = Distributions.UniformRandromMatrixBool(numOfDreams, m_rbms[0].NumberOfVisibleElements);
 
             var ret = Reconstruct(dreamRawData);
 
             return ret;
         }
 
-        public double[][] Train( double[][] data, int epochs,int layerNumber ,out double error)
+        public double[][] Train(double[][] data, int epochs, int layerNumber, out double error)
         {
             m_rbms[layerNumber].Train(data, epochs, out error);
             RaiseTrainEnd(error);
             return m_rbms[layerNumber].GetHiddenLayer(data);
         }
 
-        
-        public void AsyncTrain( double[][] data, int epochs,int layerNumber)
+        public void AsyncTrain(double[][] data, int epochs, int layerNumber)
         {
             double error;
             var f = new TaskFactory();
-            f.StartNew(new Action(() => Train( data, epochs, layerNumber, out error)));
+            f.StartNew(new Action(() => Train(data, epochs, layerNumber, out error)));
         }
 
         public void TrainAll(double[][] visibleData, int epochs, int epochMultiplier)
@@ -119,8 +114,9 @@ namespace DeepLearn
 
         public void AsyncTrainAll(double[][] visibleData, int epochs, int epochMultiplier)
         {
-            TaskFactory f = new TaskFactory();
-            f.StartNew(new Action(() => TrainAll(visibleData, epochs, epochMultiplier)));
-        }
+            var f = new TaskFactory();
+            f.StartNew(() => TrainAll(visibleData, epochs, epochMultiplier));
+        } 
+        #endregion
     }
 }

@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace DeepLearn
 {
+    /// <summary>
+    /// Generic Vector
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class Vector<T>
     {
 
@@ -40,9 +44,12 @@ namespace DeepLearn
 
     }
 
-
+    /// <summary>
+    /// Vector of real numbers
+    /// </summary>
     public class RVector : Vector<double>
     {
+        #region Public properties
         /// <summary>
         /// Vector Euclidean norm p2
         /// </summary>
@@ -53,13 +60,15 @@ namespace DeepLearn
                 double n = 0;
                 Parallel.For(0, m_array.Length, i =>
                                                     {
-                                                        n += this[i]*this[i];
+                                                        n += this[i] * this[i];
                                                     });
 
                 return n == 0.0 ? 0 : Math.Sqrt(n);
             }
-        }
+        } 
+        #endregion
 
+        #region Ctors
         public RVector(int size)
             : base(size)
         {
@@ -70,14 +79,17 @@ namespace DeepLearn
             : base(mat)
         {
         }
+        
+        #endregion
 
+        #region Operator Overloadings
         public static RVector operator *(double scalar, RVector v)
         {
             var newVector = new RVector(v.Length);
 
             Parallel.For(0, v.Length, i =>
                                           {
-                                              newVector[i] = v[i]*scalar;
+                                              newVector[i] = v[i] * scalar;
                                           });
 
             return newVector;
@@ -85,12 +97,12 @@ namespace DeepLearn
 
         public static RVector operator *(RVector v, double scalar)
         {
-            return scalar*v;
+            return scalar * v;
         }
 
         public static RVector operator /(RVector v, double scalar)
         {
-            return scalar == 0.0 ? new RVector(v.Length) : v*(1/scalar);
+            return scalar == 0.0 ? new RVector(v.Length) : v * (1 / scalar);
         }
 
         public static double operator *(RVector u, RVector v)
@@ -124,9 +136,9 @@ namespace DeepLearn
 
             Parallel.For(0, c1.Length, i =>
             {
-               
-                    result[i] = Convert.ToDouble(c1[i] > c2[i]);
-               
+
+                result[i] = Convert.ToDouble(c1[i] > c2[i]);
+
             });
             return result;
         }
@@ -134,8 +146,10 @@ namespace DeepLearn
         public static RVector operator <(RVector c1, RVector c2)
         {
             return c2 > c1;
-        }
+        } 
+        #endregion
 
+        #region Static Methods
         public static RVector Zeros(int size)
         {
             return new RVector(size);
@@ -155,18 +169,11 @@ namespace DeepLearn
 
         public static RVector Random(int size)
         {
-            var v = new RVector(size);
-            var r = new Random();
+            return Distributions.UniformRandromVector(size);
+        } 
+        #endregion
 
-            Parallel.For(0, size, i =>
-                                      {
-                                          v[i] = r.NextDouble();
-
-                                      });
-
-            return v;
-        }
-
+        #region Public Methods
         public void Normalize()
         {
 
@@ -174,12 +181,16 @@ namespace DeepLearn
 
             Parallel.For(0, Length, i =>
                                         {
-                                            this[i] = this[i]/distance;
+                                            this[i] = this[i] / distance;
                                         });
 
-        }
+        } 
+        #endregion
     }
 
+    /// <summary>
+    /// Vector extension methdos
+    /// </summary>
     public static class VectorEx
     {
         public static double Dot(this RVector v1, RVector v2)
