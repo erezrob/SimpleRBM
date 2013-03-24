@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 namespace DeepLearn
 {
+    /// <summary>
+    /// Simple Deep Belief Network - Built on multiple restricted boltzmann machines
+    /// </summary>
     public class DeepBeliefNetwork : IDBN
     {
         #region Events

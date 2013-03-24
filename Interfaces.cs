@@ -10,6 +10,7 @@ namespace DeepLearn
         double[][] GetHiddenLayer(double[][] data);
         double[][] GetVisibleLayer(double[][] data);
         double[][] Reconstruct(double[][] data);
+        double[][] DayDream(int numberOfSamples);
 
         void Train(double[][] data, int epochs, out double error);
         void AsyncTrain(double[][] data, int epochs);
@@ -23,6 +24,7 @@ namespace DeepLearn
         double[][] Encode(double[][] data);
         double[][] Decode(double[][] data);
         double[][] Reconstruct(double[][] data);
+        double[][] DayDream(int numberOfSamples);
 
         double[][] Train(double[][] data, int epochs,int layerPosition, out double error);
         void AsyncTrain(double[][] data, int epochs, int layerPosition);

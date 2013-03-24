@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace DeepLearn
 {
+    /// <summary>
+    /// Simple Restricted Boltzmann Machine implementation
+    /// </summary>
     public class RBM : IRBM
     {
         #region Events

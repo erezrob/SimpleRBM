@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DeepLearn
 {
-    class Distributions
+    public static class Distributions
     {
         private static readonly Random Random = new Random(); //reuse this if you are generating many non time dependant numbers
         
