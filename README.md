@@ -3,8 +3,8 @@ SimpleRBM
 
 Restricted Boltzmann Machine and Deep Belief Network Implementation in C#
 based primarily on the papers:<BR> "<a href="http://www.iro.umontreal.ca/~bengioy/papers/ftml.pdf">Learning Deep Architectures for AI</a>" By Joshua Bengio
-<BR>And "<a href="http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf">A Practical Guide to Training Restricted Boltzmann Machines</a>" By Geoffrey Hinton<BR>
-<BR>
+<BR>and "<a href="http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf">A Practical Guide to Training Restricted Boltzmann Machines</a>" By Geoffrey Hinton.<BR>
+Code insipred by Edwin Chen's <a href="https://github.com/echen/restricted-boltzmann-machines">python implementation</a><BR>
 <B>RBM.cs</b> - Contains the core code for the Restricted boltzmann machine. The number of lines of code have been minimized to mimic a python implementation.
 This gives us clean and readable code.<BR>
 <b>DeepBeliefNetwork.cs</b> - Is a simple multilayer RBM where the hidden layer is connected to a lower level RBM's visible layer.<BR>
