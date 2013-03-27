@@ -21,7 +21,7 @@ namespace DeepLearn
             var rbm = new DeepBeliefNetwork(new[] {1024, 50,16}, 0.4);
         
             var error = 0d;
-            rbm.TrainAll(trainingData, 50, 10);
+            rbm.TrainAll(trainingData, 50, 30);
      
             
             Console.WriteLine("\n\n");

@@ -199,50 +199,8 @@ namespace DeepLearn
 
         public static RealMatrix operator *(RealMatrix c1, RealMatrix c2)
         {
-            return MatrixProduct(c1, c2);
-
-            if (c1.Length != c2.Height)
-            {
-                throw new ArithmeticException("Width of the first matrix must equal the height of the second matrix");
-
-            }
-
-            int height = c1.Height;
-            int width = c2.Length;
-            int n = c1.Height;
-
-            var result = new RealMatrix(height, width);
-
-            //Parallel.For(0, height, i =>
-            //                            {
-            //                                for (int j = 0; j < width; j++)
-            //                                {
-            //                                    result[i, j] = 0.0;
-
-            //                                    for (int k = 0; k < n; k++)
-            //                                    {
-            //                                        result[i, j] += c1[i, k]*c2[k, j];
-            //                                    }
-            //                                }
-            //                            });
-
-            //return result;
-          
-
-            
-            return result;
-
+            return Product(c1, c2);
         }
-
-        //public static RealMatrix operator *(RealMatrix c1, Matrix<double> c2)
-        //{
-        //    return c1*(RealMatrix) c2;
-        //}
-
-        //public static RealMatrix operator *( Matrix<double> c2,RealMatrix c1)
-        //{
-        //    return (RealMatrix) c2*c1;
-        //}
 
         public static RealMatrix operator >(RealMatrix c1, RealMatrix c2)
         {
@@ -263,8 +221,7 @@ namespace DeepLearn
             return c2 > c1;
         }
 
-        static RealMatrix MatrixProduct(RealMatrix matrixA,
-  RealMatrix matrixB)
+        public static RealMatrix Product(RealMatrix matrixA, RealMatrix matrixB)
         {
             int aRows = matrixA.Height;
             int aCols = matrixA.Length;
@@ -275,14 +232,22 @@ namespace DeepLearn
 
             var result = new RealMatrix(aRows, bCols);
 
-            Parallel.For(0, aRows, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, i =>
-                {
-                    for (int j = 0; j < bCols; ++j) // each col of B
-                        for (int k = 0; k < aCols; ++k) // could use k < bRows
-                        {
-                            result[i, j] += matrixA[i, k] * matrixB[k, j];
-                        }
-                }
+            Parallel.For(0, aRows, new ParallelOptions() {MaxDegreeOfParallelism = 1}, i =>
+                                                                                           {
+                                                                                               for (int j = 0;
+                                                                                                    j < bCols;
+                                                                                                    ++j)
+                                                                                                   // each col of B
+                                                                                                   for (int k = 0;
+                                                                                                        k < aCols;
+                                                                                                        ++k)
+                                                                                                       // could use k < bRows
+                                                                                                   {
+                                                                                                       result[i, j] +=
+                                                                                                           matrixA[i, k]*
+                                                                                                           matrixB[k, j];
+                                                                                                   }
+                                                                                           }
 
                 );
 
