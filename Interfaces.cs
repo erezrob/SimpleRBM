@@ -26,6 +26,7 @@ namespace DeepLearn
         double[][] Reconstruct(double[][] data);
         double[][] DayDream(int numberOfSamples);
 
+
         double[][] Train(double[][] data, int epochs,int layerPosition, out double error);
         void AsyncTrain(double[][] data, int epochs, int layerPosition);
 

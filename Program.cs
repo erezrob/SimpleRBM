@@ -21,14 +21,14 @@ namespace DeepLearn
             var rbm = new DeepBeliefNetwork(new[] {1024, 50,16}, 0.4);
         
             var error = 0d;
-            rbm.TrainAll(trainingData, 50, 3);
+            rbm.TrainAll(trainingData, 50, 10);
      
             
             Console.WriteLine("\n\n");
             
             //Take a sample of input arrays and try to reconstruct them.
-            var reconstructedItems = rbm.Reconstruct(trainingData.Skip(50).Take(5).ToArray());
-
+            var reconstructedItems = rbm.Reconstruct(trainingData.Skip(50).Take(2).ToArray());
+         
             reconstructedItems.ToList().ForEach(x =>
                                                     {
                                                         Console.WriteLine("");
