@@ -258,8 +258,8 @@ namespace DeepLearn
             return result;
         }
 
-        #if !DEBUG
-                                                                                                                                                                                                                        public unsafe static RealMatrix UnsafeMultiplication(RealMatrix m1, RealMatrix m2)
+#if !DEBUG
+        public unsafe static RealMatrix UnsafeMultiplication(RealMatrix m1, RealMatrix m2)
         {
             int h = m1.Height;
             int w = m2.Width;
@@ -284,10 +284,10 @@ namespace DeepLearn
                                            }
                                        }
                                    });
-            
+
             return resultMatrix;
         }
-        #endif
+#endif
         #endregion
 
         #region Scalar Operations
