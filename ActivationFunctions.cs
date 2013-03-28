@@ -24,11 +24,11 @@ namespace DeepLearn
         /// <returns>Logistic matrix</returns>
         public static RealMatrix Logistic(RealMatrix matrix)
         {
-            var result = new RealMatrix(matrix.Height, matrix.Length);
+            var result = new RealMatrix(matrix.Height, matrix.Width);
 
             for (int i = 0; i < matrix.Height; i++)
             {
-                for (int j = 0; j < matrix.Length; j++)
+                for (int j = 0; j < matrix.Width; j++)
                 {
                     result[i, j] = Logistic(matrix[i, j]);
                 }

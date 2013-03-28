@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -152,9 +153,11 @@ namespace DeepLearn
             var data = new RealMatrix(dataArray);
 
             data = data.InsertCol(1);
+            Stopwatch sw = new Stopwatch();
 
             for (int i = 0; i < maxEpochs; i++)
             {
+                sw.Start();
                 var posHiddenActivations = data * m_weights;
                 var posHiddenProbs = ActivationFunctions.Logistic(posHiddenActivations);
                 var posHiddenStates = posHiddenProbs > Distributions.UniformRandromMatrix(numExamples, m_numHiddenElements + 1);
@@ -171,9 +174,11 @@ namespace DeepLearn
 
                 m_weights = m_weights + (m_learningRate * ((posAssociations - negAssociations) / numExamples));
 
+                sw.Stop();
                 error = ((data - negVisibleProbs) ^ 2).Sum();
                 RaiseEpochEnd(i, error);
-                Console.WriteLine("Epoch {0}: error is {1}", i, error);
+                Console.WriteLine("Epoch {0}: error is {1}, computation time (ms): {2}", i, error,sw.ElapsedMilliseconds);
+                sw.Reset();
             }
 
             RaiseTrainEnd(maxEpochs, error);

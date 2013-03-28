@@ -27,12 +27,12 @@ namespace DeepLearn
 
         public Vector(Matrix<T> mat)
         {
-            int size = Math.Max(mat.Length, mat.Height);
+            int size = Math.Max(mat.Width, mat.Height);
             m_array = new T[size];
 
             for (int i = 0; i < size; i++)
             {
-                m_array[i] = mat.Height > mat.Length ? mat[i, 0] : mat[0, i];
+                m_array[i] = mat.Height > mat.Width ? mat[i, 0] : mat[0, i];
             }
         }
 

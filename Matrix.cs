@@ -18,7 +18,7 @@ namespace DeepLearn
         #region Public Properties
         public int Height { get { return m_array.Length; } }
 
-        public int Length { get { return m_array[0].Length; } } 
+        public int Width { get { return m_array[0].Length; } } 
         #endregion
 
         #region Ctors
@@ -38,7 +38,7 @@ namespace DeepLearn
         {
             for (int i = 0; i < Height; i++)
             {
-                for (int j = 0; j < Length; j++)
+                for (int j = 0; j < Width; j++)
                 {
                     this[i, j] = data[i, j];
                 }
@@ -55,7 +55,7 @@ namespace DeepLearn
         {
             for (int i = 0; i < Height; i++)
             {
-                for (int j = 0; j < Length; j++)
+                for (int j = 0; j < Width; j++)
                 {
                     this[i, j] = data[i][j];
                 }
@@ -85,7 +85,7 @@ namespace DeepLearn
         {
             for (int i = 0; i < Height; i++)
             {
-                for (int j = 0; j < Length; j++)
+                for (int j = 0; j < Width; j++)
                 {
                     yield return m_array[i][j];
                 }
@@ -104,11 +104,11 @@ namespace DeepLearn
         {
             get
             {
-                var newMat = new Matrix<T>(Length, Height);
+                var newMat = new Matrix<T>(Width, Height);
 
                 for (int i = 0; i < Height; i++)
                 {
-                    for (int j = 0; j < Length; j++)
+                    for (int j = 0; j < Width; j++)
                     {
                         newMat[j, i] = this[i, j];
                     }
@@ -171,11 +171,11 @@ namespace DeepLearn
 
         public static RealMatrix operator +(RealMatrix c1, RealMatrix c2)
         {
-            var mat = new RealMatrix(c1.Height, c1.Length);
+            var mat = new RealMatrix(c1.Height, c1.Width);
 
             for (int i = 0; i < c1.Height; i++)
             {
-                for (int j = 0; j < c1.Length; j++)
+                for (int j = 0; j < c1.Width; j++)
                 {
                     mat[i, j] = c1[i, j] + c2[i, j];
                 }
@@ -185,11 +185,11 @@ namespace DeepLearn
 
         public static RealMatrix operator -(RealMatrix c1, RealMatrix c2)
         {
-            var mat = new RealMatrix(c1.Height, c1.Length);
+            var mat = new RealMatrix(c1.Height, c1.Width);
 
             for (int i = 0; i < c1.Height; i++)
             {
-                for (int j = 0; j < c1.Length; j++)
+                for (int j = 0; j < c1.Width; j++)
                 {
                     mat[i, j] = c1[i, j] - c2[i, j];
                 }
@@ -199,16 +199,20 @@ namespace DeepLearn
 
         public static RealMatrix operator *(RealMatrix c1, RealMatrix c2)
         {
+#if DEBUG
             return Product(c1, c2);
+#else
+            return UnsafeMultiplication(c1, c2);
+#endif
         }
 
         public static RealMatrix operator >(RealMatrix c1, RealMatrix c2)
         {
-            var result = new RealMatrix(c1.Height, c1.Length);
+            var result = new RealMatrix(c1.Height, c1.Width);
             
             Parallel.For(0, c1.Height, i =>
                                            {
-                                               for (int j = 0; j < c1.Length; j++)
+                                               for (int j = 0; j < c1.Width; j++)
                                                {
                                                    result[i, j] = Convert.ToDouble(c1[i, j] > c2[i, j]);
                                                }
@@ -224,15 +228,15 @@ namespace DeepLearn
         public static RealMatrix Product(RealMatrix matrixA, RealMatrix matrixB)
         {
             int aRows = matrixA.Height;
-            int aCols = matrixA.Length;
+            int aCols = matrixA.Width;
             int bRows = matrixB.Height;
-            int bCols = matrixB.Length;
+            int bCols = matrixB.Width;
             if (aCols != bRows)
                 throw new Exception("xxxx");
 
             var result = new RealMatrix(aRows, bCols);
 
-            Parallel.For(0, aRows, new ParallelOptions() {MaxDegreeOfParallelism = 1}, i =>
+            Parallel.For(0, aRows, i =>
                                                                                            {
                                                                                                for (int j = 0;
                                                                                                     j < bCols;
@@ -254,17 +258,47 @@ namespace DeepLearn
             return result;
         }
 
+        #if !DEBUG
+                                                                                                                                                                                                                        public unsafe static RealMatrix UnsafeMultiplication(RealMatrix m1, RealMatrix m2)
+        {
+            int h = m1.Height;
+            int w = m2.Width;
+            int l = m1.Width;
+            RealMatrix resultMatrix = new RealMatrix(h, w);
+
+            Parallel.For(0, h, i =>
+                               //for (int i = 0; i < h; i++)
+                                   {
+                                       fixed (double* pm = resultMatrix.m_array[i], pm1 = m1.m_array[i])
+                                       {
+                                           for (int j = 0; j < w; j++)
+                                           {
+                                               double res = 0;
+                                               for (int k = 0; k < l; k++)
+                                               {
+                                                   fixed (double* pm2 = m2.m_array[k])
+                                                       res += pm1[k]*pm2[j];
+                                               }
+                                               pm[j] = res;
+
+                                           }
+                                       }
+                                   });
+            
+            return resultMatrix;
+        }
+        #endif
         #endregion
 
         #region Scalar Operations
 
         public static RealMatrix operator +(RealMatrix c1, double scalar)
         {
-            var mat = new RealMatrix(c1.Height, c1.Length);
+            var mat = new RealMatrix(c1.Height, c1.Width);
 
             for (int i = 0; i < c1.Height; i++)
             {
-                for (int j = 0; j < c1.Length; j++)
+                for (int j = 0; j < c1.Width; j++)
                 {
                     mat[i, j] = c1[i, j] + scalar;
                 }
@@ -279,13 +313,13 @@ namespace DeepLearn
 
         public static RealMatrix operator ^(RealMatrix c1, double scalar)
         {
-            var mat = new RealMatrix(c1.Height, c1.Length);
+            var mat = new RealMatrix(c1.Height, c1.Width);
 
             if (scalar != 2)
             {
                 Parallel.For(0, c1.Height, i =>
                                                {
-                                                   for (int j = 0; j < c1.Length; j++)
+                                                   for (int j = 0; j < c1.Width; j++)
                                                    {
                                                        mat[i, j] = Math.Pow(c1[i, j], scalar);
                                                    }
@@ -295,7 +329,7 @@ namespace DeepLearn
             {
                 Parallel.For(0, c1.Height, i =>
                                                {
-                                                   for (int j = 0; j < c1.Length; j++)
+                                                   for (int j = 0; j < c1.Width; j++)
                                                    {
                                                        mat[i, j] = c1[i, j]*c1[i, j];
                                                    }
@@ -307,11 +341,11 @@ namespace DeepLearn
 
         public static RealMatrix operator *(RealMatrix c1, double scalar)
         {
-            var mat = new RealMatrix(c1.Height, c1.Length);
+            var mat = new RealMatrix(c1.Height, c1.Width);
 
             for (int i = 0; i < c1.Height; i++)
             {
-                for (int j = 0; j < c1.Length; j++)
+                for (int j = 0; j < c1.Width; j++)
                 {
                     mat[i, j] = c1[i, j]*scalar;
                 }
@@ -343,7 +377,7 @@ namespace DeepLearn
             var str = new StringBuilder();
             for (int i = 0; i < Height; i++)
             {
-                for (int j = 0; j < Length; j++)
+                for (int j = 0; j < Width; j++)
                 {
                     str.Append(this[i, j].ToString("N2"));
                     str.Append(", ");
@@ -360,7 +394,7 @@ namespace DeepLearn
 
             for (int i = 0; i < matrix.Height; i++)
             {
-                for (int j = 0; j < matrix.Length; j++)
+                for (int j = 0; j < matrix.Width; j++)
                 {
                     matrix[i, j] = 1;
                 }
@@ -375,7 +409,7 @@ namespace DeepLearn
 
             for (int i = 0; i < matrix.Height; i++)
             {
-                for (int j = 0; j < matrix.Length; j++)
+                for (int j = 0; j < matrix.Width; j++)
                 {
                     matrix[i, j] = 0;
                 }
@@ -417,7 +451,7 @@ namespace DeepLearn
         public  RealMatrix Submatrix(int mStart, int nStart, int mSize = 0, int nSize = 0)
         {
             mSize = mSize == 0 ? Height - mStart : mSize;
-            nSize = nSize == 0 ? Length - nStart : nSize;
+            nSize = nSize == 0 ? Width - nStart : nSize;
 
             var x = new RealMatrix(mSize, nSize);
 
@@ -436,11 +470,11 @@ namespace DeepLearn
         {
             get
             {
-                var newMat = new RealMatrix(Length, Height);
+                var newMat = new RealMatrix(Width, Height);
 
                 for (int i = 0; i < Height; i++)
                 {
-                    for (int j = 0; j < Length; j++)
+                    for (int j = 0; j < Width; j++)
                     {
                         newMat[j, i] = this[i, j];
                     }
@@ -455,7 +489,7 @@ namespace DeepLearn
 
         public RVector ToVector()
         {
-            if(Length == 1)
+            if(Width == 1)
             {
                 return new RVector(Submatrix(0, 0, 0, 1));
             }
@@ -484,17 +518,17 @@ namespace DeepLearn
         /// <returns></returns>
         public static RealMatrix InsertRow(this RealMatrix matrix, int value)
         {
-            var mat = new RealMatrix(matrix.Height + 1, matrix.Length);
+            var mat = new RealMatrix(matrix.Height + 1, matrix.Width);
 
 
             Parallel.For(0, matrix.Height, i =>
-                                           Parallel.For(0, matrix.Length, j =>
+                                           Parallel.For(0, matrix.Width, j =>
                                                                               {
                                                                                   mat[i + 1, j] = matrix[i, j];
                                                                               }));
 
 
-            Parallel.For(0, mat.Length, i =>
+            Parallel.For(0, mat.Width, i =>
                                             {
                                                 mat[0, i] = value;
                                             });
@@ -510,10 +544,10 @@ namespace DeepLearn
         /// <returns></returns>
         public static RealMatrix InsertCol(this RealMatrix matrix, int value)
         {
-            var mat = new RealMatrix(matrix.Height, matrix.Length + 1);
+            var mat = new RealMatrix(matrix.Height, matrix.Width + 1);
 
             Parallel.For(0, matrix.Height, i =>
-                                           Parallel.For(0, matrix.Length, j =>
+                                           Parallel.For(0, matrix.Width, j =>
                                                                               {
                                                                                   mat[i, j + 1] = matrix[i, j];
                                                                               }));
@@ -534,10 +568,10 @@ namespace DeepLearn
         /// <returns></returns>
         public static RealMatrix RemoveFirstCol(this RealMatrix matrix)
         {
-            var mat = new RealMatrix(matrix.Height, matrix.Length - 1);
+            var mat = new RealMatrix(matrix.Height, matrix.Width - 1);
 
             Parallel.For(0, mat.Height, i =>
-                                        Parallel.For(0, mat.Length, j =>
+                                        Parallel.For(0, mat.Width, j =>
                                                                         {
                                                                             mat[i, j] = matrix[i, j + 1];
                                                                         }));
@@ -559,7 +593,7 @@ namespace DeepLearn
 
             if (axis == 0)
             {
-                Parallel.For(0, matrix.Length, i =>
+                Parallel.For(0, matrix.Width, i =>
                                                    {
                                                        mat[index, i] = value;
                                                    });
@@ -588,7 +622,7 @@ namespace DeepLearn
                                   int nSize = 0)
         {
             mSize = mSize == 0 ? matrix.Height - mPos : mSize;
-            nSize = nSize == 0 ? matrix.Length - nPos : nSize;
+            nSize = nSize == 0 ? matrix.Width - nPos : nSize;
 
             for (int i = 0; i < mSize; i++)
             {
@@ -637,7 +671,7 @@ namespace DeepLearn
         public static RealMatrix[] QR(RealMatrix A)
         {
             int m = A.Height;
-            int n = A.Length;
+            int n = A.Width;
 
             var Q = RealMatrix.I(m);
 
